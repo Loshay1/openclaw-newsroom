@@ -1,10 +1,25 @@
 # OpenClaw Automated News Scanner
 
-> **See it in action:** This pipeline powers [Gen AI Spotlight](https://t.me/genaispot) on Telegram — a fully automated AI news channel. Join to see what the output looks like in production.
+<a href="https://t.me/genaispot"><img src="assets/gen-ai-spotlight-logo.jpg" width="120" align="left" style="margin-right: 16px;" /></a>
 
-**Video walkthroughs:**
-- [Building the News Scan Pipeline](https://youtu.be/2nk5CqrXX9E)
-- [Pipeline Deep Dive & Demo](https://youtu.be/cvdAqCM1wGs)
+**See it in action:** This pipeline powers [Gen AI Spotlight](https://t.me/genaispot) on Telegram — a fully automated AI news channel. Join to see what the output looks like in production.
+
+<br clear="left"/>
+
+### Video Walkthroughs
+
+<table>
+<tr>
+<td width="50%">
+<a href="https://youtu.be/2nk5CqrXX9E"><img src="assets/video-thumbnail-1.jpg" width="100%" /></a>
+<br/><a href="https://youtu.be/2nk5CqrXX9E">Building the News Scan Pipeline</a>
+</td>
+<td width="50%">
+<a href="https://youtu.be/cvdAqCM1wGs"><img src="assets/video-thumbnail-2.jpg" width="100%" /></a>
+<br/><a href="https://youtu.be/cvdAqCM1wGs">Pipeline Deep Dive & Demo</a>
+</td>
+</tr>
+</table>
 
 ---
 
