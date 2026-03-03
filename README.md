@@ -1,5 +1,13 @@
 # OpenClaw Automated News Scanner
 
+> **See it in action:** This pipeline powers [Gen AI Spotlight](https://t.me/genaispot) on Telegram — a fully automated AI news channel. Join to see what the output looks like in production.
+
+**Video walkthroughs:**
+- [Building the News Scan Pipeline](https://youtu.be/2nk5CqrXX9E)
+- [Pipeline Deep Dive & Demo](https://youtu.be/cvdAqCM1wGs)
+
+---
+
 A complete, automated AI news scanning pipeline for [OpenClaw](https://github.com/openclaw/openclaw). Scans 5 data sources every 2 hours, scores and deduplicates results, enriches top articles with full text, and uses Gemini Flash as an AI editor to curate the best stories for your channel.
 
 **Pipeline cost:** ~$5/month (Gemini Flash API + Tavily free tier)
