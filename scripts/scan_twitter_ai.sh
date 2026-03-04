@@ -1,7 +1,8 @@
 #!/bin/bash
 # Twitter/X AI News Scanner
 # Scans official accounts, reporters/leakers, and trending AI topics
-# Requires: bird CLI (https://github.com/nicholasgasior/bird)
+# Requires: bird CLI — https://bird.fast
+# Install: npm install -g @steipete/bird  OR  brew install steipete/tap/bird
 
 set -e
 

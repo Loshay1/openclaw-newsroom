@@ -120,7 +120,7 @@ OpenClaw Gateway
 | `TWITTERAPI_IO_KEY` | Optional | twitterapi.io keyword search supplement | Paid (small monthly fee) |
 
 ### Optional Tools
-- **bird** — Twitter/X CLI tool (for `scan_twitter_ai.sh`). If not installed, the Twitter bird CLI source is skipped gracefully.
+- **bird** — Twitter/X CLI tool (for `scan_twitter_ai.sh`). Install: `npm install -g @steipete/bird` or `brew install steipete/tap/bird` — see [bird.fast](https://bird.fast). If not installed, the Twitter bird CLI source is skipped gracefully.
 
 ---
 
