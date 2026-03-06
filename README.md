@@ -65,8 +65,8 @@ OpenClaw Gateway
 1. **Scripts live in** `~/.openclaw/workspace/scripts/` — OpenClaw's standard location for agent-callable scripts
 2. **Memory files live in** `~/.openclaw/workspace/memory/` — persistent across sessions
 3. **The cron job** uses `sessionTarget: "isolated"` so each scan gets a clean session (no context contamination)
-4. **The agent model** (e.g., Kimi K2.5) orchestrates the pipeline. The actual AI curation uses a 3-tier LLM failover chain (Gemini Flash Lite → Grok → Gemini Flash) via direct API calls — so your cron model doesn't need to be expensive
-5. **Delivery** is handled by OpenClaw's channel system (Telegram, Slack, etc.)
+4. **The agent model** orchestrates the pipeline. Use `openai-codex/gpt-5.3-codex` or `anthropic/claude-sonnet-4-6` — the model must support tool execution in isolated sessions. The actual AI curation uses a 3-tier LLM failover chain (Gemini Flash Lite → Grok → Gemini Flash) via direct API calls.
+5. **Delivery** is handled by OpenClaw's channel system (Telegram, Slack, etc.) — use `delivery.mode: announce` with your channel and destination configured
 
 **Not using OpenClaw?** The scripts work standalone too — just run `./news_scan_deduped.sh` from a regular cron job or shell. The only OpenClaw-specific parts are the cron job setup and channel delivery.
 
@@ -245,15 +245,19 @@ openclaw cron add \
   --cron "40 9,11,13,15,17,19,21 * * *" \
   --message "Run the Gen AI news scanner: bash ~/.openclaw/workspace/scripts/news_scan_deduped.sh" \
   --agent main \
-  --model "kimi-coding/k2p5" \
+  --model "openai-codex/gpt-5.3-codex" \
   --announce \
   --channel telegram \
+  --to "<your-telegram-chat-id>" \
+  --timeout-seconds 400 \
   --tz "America/New_York"
 ```
 
 **Schedule breakdown:** Runs at :40 past the hour at 9am, 11am, 1pm, 3pm, 5pm, 7pm, 9pm. Adjust the hours and timezone to match your audience.
 
-**Model choice:** The cron job uses a cheap/mid-tier model (like Kimi K2.5) to orchestrate the pipeline. The actual AI curation happens via Gemini Flash API directly (called by `llm_editor.py`), so the cron model doesn't need to be expensive.
+**Model choice:** The cron job model **must support tool execution in isolated sessions** — it needs to actually run the bash script, not just talk about it. Use `openai-codex/gpt-5.3-codex` or `anthropic/claude-sonnet-4-6`. Avoid Kimi K2.5 — it has a tool schema incompatibility in isolated sessions that silently prevents bash execution, causing it to hallucinate stories from training data instead of running the pipeline.
+
+**Output format:** Cap your cron payload at 5 stories with summaries under 100 chars each. Telegram's Bot API has a hard 4096 character limit per message — exceeding it causes delivery to fail silently with no visible error to the user.
 
 ### Step 7: Test the Pipeline
 
@@ -453,7 +457,11 @@ Tavily (5 queries) ─────┘                    (max 50)               
 | "No new stories found" | RSS feeds may all be read. Wait for new articles. |
 | All LLM providers failed | Check that `GEMINI_API_KEY` and/or `OPENROUTER_API_KEY` are set. The pipeline saves candidates to a file for manual re-run. |
 | LLM editor timeout | Increase timeout values in the `FAILOVER_CHAIN` in `llm_editor.py` |
-| Pipeline takes too long | Increase cron timeout: `openclaw cron edit <id> --timeout 120` |
+| Pipeline takes too long | Increase cron timeout: `openclaw cron edit <id> --timeout-seconds 400` |
+| Cron delivers raw API errors or hallucinated stories | Your cron model doesn't support tool execution in isolated sessions. Switch to `openai-codex/gpt-5.3-codex` or `anthropic/claude-sonnet-4-6`. Kimi K2.5 has a known tool schema incompatibility in isolated sessions. |
+| Telegram "message is too long" / delivery silently fails | Story list exceeds Telegram's 4096 char limit. Cap output at 5 stories with summaries under 100 chars each. |
+| `--force` flag invalid (OpenClaw v2026.3.2+) | The flag was removed. `openclaw cron run <id>` now runs immediately by default — no flag needed. |
+| Stories are old / from years ago | The pipeline script didn't run — the model hallucinated from training data. Check your cron model (see above) and verify the script path is correct. |
 | GitHub rate limit | Set GH_TOKEN env var for 5000 req/h (vs 60/h) |
 | Duplicate stories | SQLite dedup handles this automatically. Run `python3 dedup_db.py --seed` to import historical posts. Check DB status: `python3 dedup_db.py --stats` |
 | Non-AI articles leaking | The inline AI keyword filter should catch these. Check the keyword patterns in `news_scan_deduped.sh` and add missing terms. |
