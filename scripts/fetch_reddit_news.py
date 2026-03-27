@@ -27,7 +27,7 @@ TIMEOUT = 20
 MAX_WORKERS = 3
 RETRY_COUNT = 1
 RETRY_DELAY = 3
-USER_AGENT = "Mozilla/5.0 (compatible; TradeDeskScanner/2.0; +https://github.com/Loshay1/openclaw-newsroom)"
+USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
 
 # Subreddit configs: dict with optional "flairs" list for flair filtering.
 # When "flairs" is set, only posts matching those flairs are included
@@ -112,8 +112,17 @@ def flair_matches(post_flair, allowed_flairs):
     return False
 
 
+_JSON_BLOCKED = False  # Set True after first 403 to skip JSON for all subs
+
+
 def fetch_subreddit(subreddit, sort, limit, min_score, cutoff, flairs=None):
     """Fetch posts from a single subreddit. If flairs is set, only matching posts."""
+    global _JSON_BLOCKED
+
+    # Skip JSON entirely if already blocked (avoid wasting requests)
+    if _JSON_BLOCKED:
+        return fetch_subreddit_rss(subreddit, sort, limit, cutoff, flairs)
+
     url = f"https://www.reddit.com/r/{subreddit}/{sort}.json?limit={limit}&raw_json=1"
 
     for attempt in range(RETRY_COUNT + 1):
@@ -191,8 +200,9 @@ def fetch_subreddit(subreddit, sort, limit, min_score, cutoff, flairs=None):
                 time.sleep(10)
                 continue
             elif e.code == 403:
-                print(f"  Warning: r/{subreddit} is private/quarantined", file=sys.stderr)
-                return []
+                # JSON API blocked — fall back to RSS for this and all future subs
+                _JSON_BLOCKED = True
+                return fetch_subreddit_rss(subreddit, sort, limit, cutoff, flairs)
             print(f"  Warning: r/{subreddit}: HTTP {e.code}", file=sys.stderr)
         except (URLError, OSError) as e:
             print(f"  Warning: r/{subreddit}: network error", file=sys.stderr)
@@ -205,6 +215,71 @@ def fetch_subreddit(subreddit, sort, limit, min_score, cutoff, flairs=None):
     return []
 
 
+def fetch_subreddit_rss(subreddit, sort, limit, cutoff, flairs=None):
+    """Fallback: fetch posts via Reddit RSS (Atom) when JSON API returns 403."""
+    import xml.etree.ElementTree as ET
+
+    # Delay between RSS requests to avoid rate limiting
+    time.sleep(2)
+
+    url = f"https://www.reddit.com/r/{subreddit}/{sort}.rss?limit={limit}"
+
+    try:
+        req = Request(url, headers={
+            'User-Agent': USER_AGENT,
+            'Accept': 'text/html,application/xhtml+xml,*/*',
+        })
+        with urlopen(req, timeout=TIMEOUT, context=_SSL_CTX) as resp:
+            content = resp.read().decode('utf-8')
+
+        ns = {'atom': 'http://www.w3.org/2005/Atom'}
+        root = ET.fromstring(content)
+        entries = root.findall('atom:entry', ns)
+
+        posts = []
+        on_topic = subreddit.lower() in {
+            'wallstreetbets', 'options', 'thetagang', 'stocks',
+            'smallstreetbets', 'daytrading', 'fatfire',
+            'cryptocurrency', 'defi', 'altcoin',
+            'legaltech', 'homeassistant',
+        }
+
+        for entry in entries:
+            title_el = entry.find('atom:title', ns)
+            link_el = entry.find('atom:link', ns)
+            updated_el = entry.find('atom:updated', ns)
+
+            if title_el is None or link_el is None:
+                continue
+
+            title = title_el.text.strip() if title_el.text else ''
+            link = link_el.get('href', '')
+
+            if not title or not link:
+                continue
+            if is_noise(title):
+                continue
+            if not on_topic and not is_relevant(title):
+                continue
+
+            title_clean = title.replace('|', ' -')
+            posts.append({
+                'title': title_clean,
+                'url': link,
+                'source': f"r/{subreddit}",
+                'score': 0,
+                'comments': 0,
+            })
+
+        if posts:
+            print(f"  r/{subreddit}: {len(posts)} posts via RSS fallback", file=sys.stderr)
+        return posts
+
+    except Exception as e:
+        print(f"  Warning: r/{subreddit} RSS fallback failed: {e}", file=sys.stderr)
+        return []
+
+
 def main():
     parser = argparse.ArgumentParser(description="Fetch Reddit posts via JSON API")
     parser.add_argument('--hours', type=int, default=24, help='Hours lookback (default: 24)')
@@ -214,7 +289,9 @@ def main():
     cutoff = datetime.now(timezone.utc) - timedelta(hours=args.hours)
 
     all_posts = []
-    with ThreadPoolExecutor(max_workers=MAX_WORKERS) as pool:
+    # Use 1 worker when RSS fallback is active (rate limit sensitive)
+    workers = 1 if _JSON_BLOCKED else MAX_WORKERS
+    with ThreadPoolExecutor(max_workers=workers) as pool:
         futures = {}
         for cfg in SUBREDDITS:
             sub = cfg["sub"]
