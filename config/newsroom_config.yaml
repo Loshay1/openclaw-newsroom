@@ -1,0 +1,52 @@
+# ============================================================
+# NEWSROOM CONFIG — Larab Mohsin
+# Generated: 2026-03-26
+# Purpose: Actionable trade idea engine powered by AI news curation
+# Target: OpenClaw Newsroom fork (openclaw-newsroom)
+# ============================================================
+
+topic_focus:
+  primary:
+    - options_trading
+    - crypto
+    - precious_metals
+  secondary:
+    - legal_tech_ai
+    - smart_home
+  meta_layer:
+    - geopolitical_catalysts
+    - macro_economic
+
+editorial_voice:
+  style: sharp_actionable_with_reasoning
+  tone: "direct, confident, data-backed"
+
+delivery:
+  primary: telegram
+  secondary: local_review_file
+
+openclaw_node:
+  name: Bashir
+  type: "Beelink / WSL2"
+
+scan_schedule:
+  timezone: "America/Chicago"
+  market_hours:
+    cron: "0 8-16 * * 1-5"
+  off_hours:
+    cron: "0 0,4,20 * * 1-5"
+    weekend_cron: "0 0,4,8,12,16,20 * * 0,6"
+
+stories_per_scan: 10
+
+api_keys_available:
+  - GEMINI_API_KEY
+  - OPENROUTER_API_KEY
+  - GH_TOKEN
+  - TAVILY_API_KEY
+  - TWITTERAPI_IO_KEY
+
+account_context:
+  capital: "$1,000 Webull"
+  strategy: "defined-risk (spreads, iron condors, cheap debit spreads under $1.50)"
+  max_risk_per_trade: "$200"

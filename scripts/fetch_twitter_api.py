@@ -31,11 +31,12 @@ _SSL_CTX = ssl.create_default_context()
 TIMEOUT = 15
 API_BASE = "https://api.twitterapi.io/twitter"
 
-# Search queries — focused on breaking AI news
+# Search queries — focused on options flow, crypto, metals, macro
 SEARCH_QUERIES = [
-    '"breaking" (AI OR "artificial intelligence" OR LLM) -is:retweet lang:en',
-    '(Anthropic OR Claude OR OpenAI) (announce OR launch OR release) -is:retweet lang:en',
-    '(AI OR "artificial intelligence") (acquisition OR merger OR billion OR deal) -is:retweet lang:en',
+    '"unusual options" OR "dark pool" OR "whale" OR "block trade" -is:retweet lang:en',
+    '(bitcoin OR ethereum OR crypto) (breakout OR breaking OR surge OR crash) -is:retweet lang:en',
+    '(gold OR silver OR "precious metals") (breakout OR surge OR "all time high") -is:retweet lang:en',
+    '"Fed rate" OR "CPI" OR tariff OR sanctions (market OR stocks) -is:retweet lang:en',
 ]
 
 # Minimum engagement to filter noise

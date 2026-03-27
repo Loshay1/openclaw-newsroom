@@ -28,13 +28,13 @@ _SSL_CTX = ssl.create_default_context()
 TIMEOUT = 15
 TAVILY_API = "https://api.tavily.com/search"
 
-# Focused search queries — customize for your editorial focus
+# Focused search queries — customized for trading/crypto/metals/legal
 SEARCH_QUERIES = [
-    "AI artificial intelligence breaking news today",
-    "Anthropic Claude OpenAI latest announcement",
-    "AI acquisition merger funding billion",
-    "AI model release launch new",
-    "AI regulation government policy",
+    "unusual options activity whale flow today",
+    "bitcoin ethereum crypto breaking news today",
+    "gold silver precious metals market news today",
+    "Federal Reserve rate decision macro economic news",
+    "legal tech AI court ruling latest",
 ]
 
 # Domains to skip (already covered by RSS feeds)

@@ -33,33 +33,25 @@ USER_AGENT = "NewsScanner/1.0 (bot; reddit-scanner)"
 # When "flairs" is set, only posts matching those flairs are included
 # (case-insensitive substring match on link_flair_text).
 SUBREDDITS = [
-    # AI-focused subs — no flair filter needed (already on-topic)
-    {"sub": "LocalLLaMA",           "sort": "hot", "limit": 25, "min_score": 30},
-    {"sub": "singularity",          "sort": "hot", "limit": 25, "min_score": 50},
-    {"sub": "ChatGPT",              "sort": "hot", "limit": 25, "min_score": 50},
-    {"sub": "Anthropic",            "sort": "hot", "limit": 25, "min_score": 30},
+    # Trading — primary focus
+    {"sub": "wallstreetbets",       "sort": "hot", "limit": 50, "min_score": 500},
+    {"sub": "options",              "sort": "hot", "limit": 25, "min_score": 100},
+    {"sub": "thetagang",            "sort": "hot", "limit": 25, "min_score": 75},
+    {"sub": "stocks",               "sort": "hot", "limit": 25, "min_score": 200},
+    {"sub": "smallstreetbets",      "sort": "hot", "limit": 25, "min_score": 100},
+    {"sub": "Daytrading",           "sort": "hot", "limit": 25, "min_score": 150},
+    {"sub": "fatFIRE",              "sort": "hot", "limit": 25, "min_score": 100},
 
-    # Flair-filtered subs — use flairs to cut noise, lower score threshold
-    {"sub": "MachineLearning",      "sort": "hot", "limit": 25, "min_score": 30,
-     "flairs": ["[N]", "[R]", "[P]"]},
-    {"sub": "technology",           "sort": "hot", "limit": 25, "min_score": 30,
-     "flairs": ["AI", "Artificial Intelligence"]},
-    {"sub": "OpenAI",               "sort": "hot", "limit": 25, "min_score": 30,
-     "flairs": ["News"]},
-    {"sub": "artificial",           "sort": "hot", "limit": 25, "min_score": 20,
-     "flairs": ["News"]},
-    {"sub": "ClaudeAI",             "sort": "hot", "limit": 25, "min_score": 20,
-     "flairs": ["News"]},
+    # Crypto
+    {"sub": "cryptocurrency",       "sort": "hot", "limit": 25, "min_score": 300},
+    {"sub": "defi",                 "sort": "hot", "limit": 25, "min_score": 75},
+    {"sub": "altcoin",              "sort": "hot", "limit": 25, "min_score": 50},
 
-    # New subs — added via flair filtering (too noisy without)
-    {"sub": "Futurology",           "sort": "hot", "limit": 25, "min_score": 30,
-     "flairs": ["AI", "Artificial Intelligence", "Robotics/Automation"]},
-    {"sub": "ArtificialIntelligence", "sort": "hot", "limit": 25, "min_score": 20,
-     "flairs": ["News"]},
-    {"sub": "Bard",                 "sort": "hot", "limit": 25, "min_score": 20,
-     "flairs": ["News"]},
-    {"sub": "GeminiAI",             "sort": "hot", "limit": 25, "min_score": 20,
-     "flairs": ["News"]},
+    # Legal tech
+    {"sub": "legaltech",            "sort": "hot", "limit": 25, "min_score": 25},
+
+    # Home Assistant
+    {"sub": "homeassistant",        "sort": "hot", "limit": 25, "min_score": 100},
 ]
 
 # Reddit noise filter — skip questions, rants, memes
@@ -73,16 +65,21 @@ NOISE_START = re.compile(
     re.IGNORECASE
 )
 
-# AI relevance keywords (must match at least one)
-SHORT_KW = re.compile(r'\b(AI|AGI|LLM|GPU|TPU|RAG)\b', re.IGNORECASE)
+# Relevance keywords (must match at least one)
+SHORT_KW = re.compile(r'\b(SPY|QQQ|IWM|GLD|SLV|BTC|ETH|SOL|Fed|CPI|GDP|IPO|M&A|SEC|P&L)\b', re.IGNORECASE)
 LONG_KW = re.compile(
-    r'artificial intelligence|machine learning|deep learning|language model|'
-    r'GPT|Claude|Gemini|ChatGPT|OpenAI|Anthropic|Google AI|DeepMind|'
-    r'agentic|neural network|transformer|diffusion|generative AI|gen AI|'
-    r'Llama|Mistral|Hugging Face|inference|training|fine-tuning|'
-    r'open.source|NVIDIA|DeepSeek|Grok|xAI|Qwen|Codex|Copilot|'
-    r'Meta AI|Cohere|Perplexity|multimodal|reasoning model|'
-    r'acquisition|funding|valuation|launch|release|benchmark',
+    r'options|unusual activity|whale|dark pool|block trade|earnings|'
+    r'bull call spread|put credit spread|iron condor|risk.reward|'
+    r'support|resistance|breakout|catalyst|swing trade|'
+    r'NVDA|TSLA|AAPL|AMZN|AMD|META|MSFT|GOOG|PLTR|SNAP|MSTR|COIN|'
+    r'gold|silver|platinum|palladium|precious metal|GDX|GDXJ|'
+    r'bitcoin|ethereum|solana|crypto|DeFi|memecoin|altcoin|'
+    r'ONDO|INJ|FET|GRT|'
+    r'Federal Reserve|rate decision|interest rate|inflation|tariff|sanctions|'
+    r'geopolitical|OPEC|trade war|'
+    r'legal tech|legal AI|court ruling|'
+    r'Home Assistant|smart home|'
+    r'acquisition|merger|funding|valuation|launch|release',
     re.IGNORECASE
 )
 
@@ -99,8 +96,8 @@ def is_noise(title):
     return False
 
 
-def is_ai_relevant(title):
-    """Return True if title contains AI-related keywords."""
+def is_relevant(title):
+    """Return True if title contains trading/crypto/metals/legal/HA keywords."""
     return bool(SHORT_KW.search(title) or LONG_KW.search(title))
 
 
@@ -158,12 +155,13 @@ def fetch_subreddit(subreddit, sort, limit, min_score, cutoff, flairs=None):
                 if is_noise(title):
                     continue
 
-                ai_focused = subreddit.lower() in {
-                    'localllama', 'machinelearning', 'chatgpt', 'openai',
-                    'artificial', 'anthropic', 'claudeai', 'singularity',
-                    'artificialintelligence', 'bard', 'geminiai',
+                on_topic = subreddit.lower() in {
+                    'wallstreetbets', 'options', 'thetagang', 'stocks',
+                    'smallstreetbets', 'daytrading', 'fatfire',
+                    'cryptocurrency', 'defi', 'altcoin',
+                    'legaltech', 'homeassistant',
                 }
-                if not ai_focused and not is_ai_relevant(title):
+                if not on_topic and not is_relevant(title):
                     continue
 
                 permalink = f"https://www.reddit.com{post.get('permalink', '')}"

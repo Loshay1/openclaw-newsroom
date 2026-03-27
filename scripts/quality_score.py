@@ -26,33 +26,54 @@ except ImportError:
 # ── Source priority scoring ──────────────────────────────────────────
 # Higher = better. Customize to match your blogwatcher feed names.
 PRIORITY_SOURCES = {
-    # T1: Wire services + official AI lab blogs (+5 bonus)
-    'Reuters Tech': 5, 'Bloomberg Tech': 5, 'Axios AI': 5, 'CNBC Tech': 5,
-    'OpenAI Blog': 5,
-    # T2: Tech press + priority bloggers (+3 bonus)
-    'TechCrunch AI': 3, 'The Verge': 3, 'THE DECODER': 3, 'VentureBeat AI': 3,
-    'Ars Technica': 3, '404 Media': 3, 'Wired AI': 3, 'MIT Tech Review': 3,
-    'Google AI Blog': 3, 'Hugging Face Blog': 3, 'Simon Willison': 3,
-    'Latent Space': 3, 'Crunchbase News': 3,
-    # T3: Aggregators (+1 bonus)
-    'Hacker News AI': 1, 'SiliconANGLE AI': 1, 'AI News': 1,
-    'Gary Marcus': 1, 'Bens Bites': 1,
+    # T1: Wire services + flow data + metals (+5 bonus)
+    'Bloomberg Markets': 5, 'Reuters Business': 5, 'Federal Reserve': 5,
+    'Unusual Whales Flow': 5, 'CoinDesk': 5, 'Kitco News': 5,
+    'Home Assistant Blog': 5, 'Artificial Lawyer': 5,
+    # T2: Financial press + legal + crypto (+3 bonus)
+    'CNBC Options Action': 3, 'MarketWatch Top Stories': 3,
+    'Seeking Alpha Market News': 3, 'The Block': 3,
+    'Above the Law': 3, 'AP News World': 3, 'Law.com Legal Tech': 3,
+    'ABA Journal Tech': 3, 'Gold.org (World Gold Council)': 3, 'Decrypt': 3,
+    # T3: Aggregators / community (+1 bonus)
+    'Zero Hedge': 1,
     # X/Twitter (+2 — original source, not aggregated)
     'X/Twitter': 2,
 }
 
-# High-value keywords that boost score
+# High-value keywords that boost score (+50 points class)
 HIGH_VALUE_KEYWORDS = re.compile(
-    r'\b(acqui|merger|billion|partnership|launch|release|'
-    r'announce|breakthrough|regulation|ban|security|vulnerability|'
-    r'open.source|Pentagon|military|government|antitrust)\b',
+    r'\b(unusual options activity|whale|dark pool|block trade|'
+    r'earnings surprise|Fed rate|gold breakout|silver squeeze|'
+    r'BTC breakout|ETH ETF|acquisition|merger|billion)\b',
+    re.IGNORECASE
+)
+
+# Medium-value keywords (+25 points class)
+MEDIUM_VALUE_KEYWORDS = re.compile(
+    r'\b(bull call spread|put credit spread|iron condor|risk.reward|'
+    r'support.resistance|catalyst|DeFi|memecoin|legal AI|'
+    r'Home Assistant|swing trade|technical analysis|macro|tariff|sanctions)\b',
     re.IGNORECASE
 )
 
 # Signal words for breaking/exclusive news
 BREAKING_KEYWORDS = re.compile(
     r'\b(breaking|exclusive|just in|confirmed|leaked|first look|'
-    r'officially|unveil|reveal)\b',
+    r'officially|unveil|reveal|flash crash|circuit breaker|halt)\b',
+    re.IGNORECASE
+)
+
+# Auto-kill keywords (-999)
+KILL_KEYWORDS = re.compile(
+    r'\b(paid course|join my discord|not financial advice|'
+    r'penny stock|guaranteed returns)\b',
+    re.IGNORECASE
+)
+
+# Soft penalty keywords (-25)
+PENALTY_KEYWORDS = re.compile(
+    r'\b(top 10|listicle|sponsored)\b',
     re.IGNORECASE
 )
 
@@ -85,11 +106,24 @@ def compute_score(title, source, tier_str):
     elif tier == 3:
         score += 1
 
+    # Kill keywords — auto-reject
+    if KILL_KEYWORDS.search(title):
+        return -999
+
+    # Soft penalty
+    if PENALTY_KEYWORDS.search(title):
+        score -= 25
+
+    # High-value keywords (+50 each, capped at 100)
     hv_matches = HIGH_VALUE_KEYWORDS.findall(title)
-    score += min(len(hv_matches) * 2, 6)
+    score += min(len(hv_matches) * 50, 100)
+
+    # Medium-value keywords (+25 each, capped at 50)
+    mv_matches = MEDIUM_VALUE_KEYWORDS.findall(title)
+    score += min(len(mv_matches) * 25, 50)
 
     if BREAKING_KEYWORDS.search(title):
-        score += 3
+        score += 30
 
     title_len = len(title)
     if title_len < 30:

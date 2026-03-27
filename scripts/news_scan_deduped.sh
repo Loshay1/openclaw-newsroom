@@ -25,7 +25,7 @@ set -e
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 # ── Parse arguments ──────────────────────────────────────────────────
-TOP_N=7
+TOP_N=10
 
 while [[ $# -gt 0 ]]; do
   case $1 in
@@ -70,7 +70,7 @@ TAVILY_COUNT=0
 PICKS_COUNT=0
 
 echo "═══════════════════════════════════════════════════════════"
-echo "  News Scanner v2 (top $TOP_N)"
+echo "  Larab's Trade Desk — Scanner v2 (top $TOP_N)"
 echo "═══════════════════════════════════════════════════════════"
 echo ""
 
@@ -96,18 +96,20 @@ except Exception as e:
     print(f"  Warning: Could not run blogwatcher articles: {e}", file=sys.stderr)
     raw = ""
 
-# ── AI keyword filter (same logic as filter_ai_news.sh) ──────────
-SHORT_KW = re.compile(r"\b(AI|AGI|LLM|GPU|TPU|RAG|API)\b")
+# ── Trading/financial keyword filter ──────────────────────────────
+SHORT_KW = re.compile(r"\b(SPY|QQQ|IWM|GLD|SLV|BTC|ETH|SOL|Fed|CPI|GDP|IPO|SEC)\b")
 LONG_KW = re.compile(
-    r"artificial intelligence|machine learning|deep learning|"
-    r"language model|GPT|Claude|Gemini|ChatGPT|OpenAI|Anthropic|"
-    r"Google AI|DeepMind|agentic|neural network|transformer|"
-    r"diffusion|generative AI|gen AI|Llama|Mistral|Hugging Face|"
-    r"inference|training|fine-tuning|open.source|NVIDIA|DeepSeek|"
-    r"Grok|xAI|Qwen|Codex|Copilot|Meta AI|Cohere|Perplexity|"
-    r"multimodal|reasoning model|robotics|autonomous|chip|"
-    r"acquisition|funding|valuation|launch|release|"
-    r"OpenClaw|Amazon Q|Bedrock|benchmark",
+    r"options|unusual activity|whale|dark pool|block trade|"
+    r"earnings|bull call spread|put credit spread|iron condor|"
+    r"risk.reward|breakout|catalyst|swing trade|"
+    r"NVDA|TSLA|AAPL|AMZN|AMD|META|MSFT|GOOG|PLTR|SNAP|MSTR|COIN|BITO|"
+    r"gold|silver|platinum|palladium|precious metal|GDX|GDXJ|"
+    r"bitcoin|ethereum|solana|crypto|DeFi|memecoin|altcoin|"
+    r"Federal Reserve|rate decision|interest rate|inflation|"
+    r"tariff|sanctions|geopolitical|OPEC|trade war|"
+    r"legal tech|legal AI|court ruling|"
+    r"Home Assistant|smart home|"
+    r"acquisition|merger|funding|valuation|launch|release",
     re.IGNORECASE
 )
 
@@ -141,7 +143,7 @@ with open(outpath, "w") as f:
     for a in articles:
         f.write(a + "\n")
 
-print(f"  Extracted {len(articles)} AI-relevant RSS articles ({filtered_out} non-AI filtered out)", file=sys.stderr)
+print(f"  Extracted {len(articles)} relevant RSS articles ({filtered_out} off-topic filtered out)", file=sys.stderr)
 ' "$ARTICLES_FILE"
 
 RSS_COUNT=$(wc -l < "$ARTICLES_FILE" | tr -d ' ')

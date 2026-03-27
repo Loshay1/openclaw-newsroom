@@ -22,45 +22,28 @@ else
   BIRD_EXTRA=""
 fi
 
-echo "Scanning X/Twitter for AI news..."
+echo "Scanning X/Twitter for trading news..."
 
-# Tier 1: Official AI company accounts (announcements)
+# Tier 1: Must-follow accounts (fastest market signals)
 OFFICIAL_ACCOUNTS=(
-  "OpenAI"
-  "AnthropicAI"
-  "GoogleAI"
-  "Google"
-  "HuggingFace"
-  "MetaAI"
-  "MistralAI"
-  "DeepMind"
-  "xAI"
-  "NVIDIAAIDev"
-  "Apple"
-  "MicrosoftAI"
+  "unusual_whales"
+  "DeItaone"
+  "Newsquawk"
 )
 
-# Tier 2: Reporters, leakers, and fast-signal accounts (break news first)
-# Customize: add reporters who cover your beat
+# Tier 2: Analysts and trade idea accounts
 REPORTER_ACCOUNTS=(
-  "btibor91"
-  "testingcatalog"
-  "kylewiggers"
-  "dseetharaman"
-  "rachelmetz"
-  "CadeMetz"
-  "inafried"
-  "_philschmid"
-  "rohanpaul_ai"
+  "OptionsAction"
+  "PeterLBrandt"
+  "MarkMinervini"
 )
 
-# Tier 3: CEO/thought leader accounts (context, not breaking)
+# Tier 3: Context — macro, metals, crypto
 CEO_ACCOUNTS=(
-  "sama"
-  "darioamodei"
-  "ylecun"
-  "karpathy"
-  "elonmusk"
+  "zaboramus"
+  "GoldTelegraph_"
+  "WatcherGuru"
+  "CoinDesk"
 )
 
 echo "Scanning official accounts..."
@@ -75,15 +58,15 @@ for acct in "${REPORTER_ACCOUNTS[@]}"; do
 done
 
 echo ""
-echo "Breaking AI news search..."
-timeout 10s $BIRD $BIRD_EXTRA search just launched OR now available OR rolling out OR just released AI model -filter:replies -filter:retweets -n 8 --plain 2>/dev/null | head -40 || true
+echo "Breaking market news search..."
+timeout 10s $BIRD $BIRD_EXTRA search unusual options activity OR whale OR dark pool OR block trade -filter:replies -filter:retweets -n 8 --plain 2>/dev/null | head -40 || true
 
 echo ""
-echo "Product launches & announcements..."
-timeout 10s $BIRD $BIRD_EXTRA search introducing OR announcing AI OR LLM OR model -filter:replies -filter:retweets -n 8 --plain 2>/dev/null | head -40 || true
+echo "Macro & metals signals..."
+timeout 10s $BIRD $BIRD_EXTRA search Fed rate OR gold breakout OR silver OR CPI OR tariff -filter:replies -filter:retweets -n 8 --plain 2>/dev/null | head -40 || true
 
 echo ""
-echo "CEO signals (context only)..."
+echo "Crypto & context signals..."
 for acct in "${CEO_ACCOUNTS[@]}"; do
   timeout 8s $BIRD $BIRD_EXTRA search "from:$acct" -n 2 --plain 2>/dev/null | head -15 || true
 done

@@ -80,8 +80,9 @@ FAILOVER_CHAIN = [
     },
 ]
 VALID_CATEGORIES = {
-    "ai_product", "m_and_a", "model_release", "security", "geopolitics",
-    "github_trending", "gaming", "fintech", "hardware", "open_source", "other"
+    "options_flow", "earnings", "crypto", "precious_metals", "macro_fed",
+    "geopolitics", "legal_tech", "smart_home", "m_and_a", "sector_rotation",
+    "other"
 }
 
 
@@ -216,12 +217,12 @@ newsworthiness for the target audience.
    from a different source or with a different headline — do NOT pick it.
 3. Maximum 2 stories from the same source.
 4. Include a 1-sentence summary explaining WHY each story matters.
-5. Rank by newsworthiness: breaking news > major deals > product launches > analysis.
-6. Prefer concrete news (X acquired Y, X launched Z) over speculation or opinion.
-7. If a GitHub repo is trending AND relevant to the audience, include it.
+5. Rank by trade potential: unusual flow > earnings catalyst > breakout setup > macro event > analysis.
+6. Prefer concrete catalysts (X broke $Y level, Fed raised rates, whale bought $Z) over speculation.
+7. Every story summary must include the TRADE THESIS, not just what happened.
 8. Assign each story a category from this list:
-   ai_product, m_and_a, model_release, security, geopolitics,
-   github_trending, gaming, fintech, hardware, open_source, other
+   options_flow, earnings, crypto, precious_metals, macro_fed,
+   geopolitics, legal_tech, smart_home, m_and_a, sector_rotation, other
 
 ## Required JSON Output Format
 Return a JSON array of your selected stories (up to {top_n}), each with these fields:
@@ -569,8 +570,9 @@ def main():
     editorial_profile = load_file_safe(EDITORIAL_PROFILE)
     if not editorial_profile:
         editorial_profile = (
-            "Select stories about AI, LLMs, tech deals, and security.\n"
-            "Prefer breaking news and concrete announcements over opinion."
+            "Select stories about options flow, crypto, precious metals, macro events, and geopolitics.\n"
+            "Every story must have a tradeable angle. Prefer catalysts with defined R:R over speculation.\n"
+            "Also include legal tech and smart home news when significant."
         )
 
     log("Loading recent post history for dedup")
