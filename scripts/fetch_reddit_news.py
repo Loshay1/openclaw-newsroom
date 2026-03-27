@@ -27,7 +27,7 @@ TIMEOUT = 20
 MAX_WORKERS = 3
 RETRY_COUNT = 1
 RETRY_DELAY = 3
-USER_AGENT = "NewsScanner/1.0 (bot; reddit-scanner)"
+USER_AGENT = "Mozilla/5.0 (compatible; TradeDeskScanner/2.0; +https://github.com/Loshay1/openclaw-newsroom)"
 
 # Subreddit configs: dict with optional "flairs" list for flair filtering.
 # When "flairs" is set, only posts matching those flairs are included

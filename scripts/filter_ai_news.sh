@@ -8,7 +8,7 @@ python3 << 'PYEOF'
 import subprocess, sys, re
 
 result = subprocess.run(
-    ['/usr/local/bin/blogwatcher', 'articles'],
+    ['blogwatcher', 'articles'],
     capture_output=True, text=True, timeout=90
 )
 raw = result.stdout

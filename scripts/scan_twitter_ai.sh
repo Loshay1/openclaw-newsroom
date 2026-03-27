@@ -6,7 +6,7 @@
 
 set -e
 
-BIRD="/usr/local/bin/bird"
+BIRD="$(command -v bird 2>/dev/null || echo /usr/local/bin/bird)"
 
 # Auth check: bird reads AUTH_TOKEN and CT0 from env vars automatically.
 # If not in env (e.g., SSH session), fall back to Chrome cookies.
