@@ -216,25 +216,33 @@ newsworthiness for the target audience.
    If a candidate covers the SAME EVENT as a recently posted story — even
    from a different source or with a different headline — do NOT pick it.
 3. Maximum 2 stories from the same source.
-4. Include a 1-sentence summary explaining WHY each story matters.
-5. Rank by trade potential: unusual flow > earnings catalyst > breakout setup > macro event > analysis.
-6. Prefer concrete catalysts (X broke $Y level, Fed raised rates, whale bought $Z) over speculation.
-7. Every story summary must include the TRADE THESIS, not just what happened.
-8. Assign each story a category from this list:
+4. Rank by trade potential: unusual flow > earnings catalyst > breakout setup > macro event > analysis.
+5. Prefer concrete catalysts (X broke $Y level, Fed raised rates, whale bought $Z) over speculation.
+6. Assign each story a category from this list:
    options_flow, earnings, crypto, precious_metals, macro_fed,
    geopolitics, legal_tech, smart_home, m_and_a, sector_rotation, other
+7. Pick the single best emoji for each story's category.
 
 ## Required JSON Output Format
 Return a JSON array of your selected stories (up to {top_n}), each with these fields:
 [
   {{
     "rank": 1,
-    "title": "Story headline",
+    "title": "Short punchy headline (under 80 chars)",
     "url": "https://...",
     "source": "Source name",
     "type": "rss, twitter, or github (use twitter for X/Twitter sources)",
-    "summary": "One sentence why this matters.",
-    "category": "category_from_list_above"
+    "category": "category_from_list_above",
+    "emoji": "single emoji matching category",
+    "facts": [
+      "First key fact — short declarative sentence",
+      "Second key fact",
+      "Third key fact",
+      "Fourth key fact (optional)"
+    ],
+    "why_it_matters": "2-3 sentences connecting this to the bigger picture and why a trader should care.",
+    "trade_play": "Specific actionable trade idea with direction, instrument, and strategy type. Max risk context for small accounts.",
+    "one_liner": "10-word summary for the digest (e.g. Fed hike bets surge — QQQ puts, long USD)"
   }}
 ]
 
@@ -482,13 +490,26 @@ def validate_picks(picks, top_n):
             "url": pick.get("url", ""),
             "source": pick.get("source", "unknown"),
             "type": pick.get("type", "rss"),
-            "summary": pick.get("summary", ""),
             "category": pick.get("category", "other"),
+            "emoji": pick.get("emoji", ""),
+            "facts": pick.get("facts", []),
+            "why_it_matters": pick.get("why_it_matters", pick.get("summary", "")),
+            "trade_play": pick.get("trade_play", ""),
+            "one_liner": pick.get("one_liner", pick.get("summary", "")),
         }
         if entry["category"] not in VALID_CATEGORIES:
             entry["category"] = "other"
         if entry["type"] not in ("rss", "twitter", "github"):
             entry["type"] = "rss"
+        if not entry["emoji"]:
+            emoji_map = {
+                "options_flow": "\U0001f4c8", "earnings": "\U0001f4bc",
+                "crypto": "\u20bf", "precious_metals": "\U0001f947",
+                "macro_fed": "\U0001f3e6", "geopolitics": "\U0001f30d",
+                "legal_tech": "\u2696\ufe0f", "smart_home": "\U0001f3e0",
+                "m_and_a": "\U0001f91d", "sector_rotation": "\U0001f504",
+            }
+            entry["emoji"] = emoji_map.get(entry["category"], "\U0001f4f0")
         validated.append(entry)
 
     for i, v in enumerate(validated):

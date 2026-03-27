@@ -398,6 +398,19 @@ for i, line in enumerate(lines):
 fi
 
 # ═════════════════════════════════════════════════════════════════════
+# TELEGRAM DELIVERY
+# ═════════════════════════════════════════════════════════════════════
+if [ "$LLM_SUCCESS" = true ] && [ -s "$PICKS_FILE" ] && [ -n "$TELEGRAM_BOT_TOKEN" ] && [ -n "$TELEGRAM_CHAT_ID" ]; then
+  echo ""
+  echo "Delivering to Telegram..."
+  STATS_JSON="{\"raw\": $TOTAL_CANDIDATES, \"scored\": ${SCORED_COUNT:-0}, \"sources\": \"$RSS_COUNT RSS | $REDDIT_COUNT Reddit | $((TWITTER_COUNT + TWITTER_API_COUNT)) Twitter | $GITHUB_COUNT GitHub | $TAVILY_COUNT Tavily\"}"
+  python3 "$SCRIPT_DIR/telegram_deliver.py" --file "$PICKS_FILE" --chat-id "$TELEGRAM_CHAT_ID" --stats "$STATS_JSON" 2>&1
+elif [ "$LLM_SUCCESS" = true ] && [ -s "$PICKS_FILE" ]; then
+  echo ""
+  echo "  Telegram delivery skipped (TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID not set)"
+fi
+
+# ═════════════════════════════════════════════════════════════════════
 # RECORD ALL SCORED CANDIDATES TO DEDUP DB
 # ═════════════════════════════════════════════════════════════════════
 if [ -s "$SCORED_FILE" ]; then
